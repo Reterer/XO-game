@@ -21,6 +21,8 @@ class Game : public sf::Drawable, public sf::Transformable
         char type;
         char map[9];
 
+        int number_turn;
+
         Menu user_interface;
         sf::Font font;
 

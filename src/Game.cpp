@@ -1,5 +1,7 @@
 #define SELL_SIZE 160
 #include "Game.h"
+#include "AI.h"
+#include <iostream>
 
 Game::Game(sf::Font& font) : user_interface(0,WINDOW_HEIGHT-100,WINDOW_WIDTH,100,font,sf::Color(212,182,117))
 {
@@ -16,7 +18,7 @@ void Game::draw(sf::RenderTarget& target, sf::RenderStates states) const
 {
     states.transform *= getTransform();
 
-    //‘ÓÌ
+    //–§–æ–Ω
     sf::RectangleShape shape;
     shape.setPosition(sf::Vector2f(0,0));
     shape.setSize(sf::Vector2f(WINDOW_WIDTH,WINDOW_HEIGHT));
@@ -47,12 +49,12 @@ void Game::draw(sf::RenderTarget& target, sf::RenderStates states) const
 
 void Game::init(char type)
 {
-    this->type = type; //≈ÒÎË 0 - 2 Ë„ÓÍ‡, ÂÒÎË 1 - 2 Ë„ÓÍ ·ÓÚ, ÂÒÎË 2 - 1 Ë„ÓÍ ·ÓÚ
+    this->type = type; //–ï—Å–ª–∏ 0 - 2 –∏–≥–æ–∫–∞, –µ—Å–ª–∏ 1 - 2 –∏–≥—Ä–æ–∫ –±–æ—Ç, –µ—Å–ª–∏ 2 - 1 –∏–≥—Ä–æ–∫ –±–æ—Ç
 
     is_first_turn = true;
     setLabelText();
-    is_first_turn = false;
 
+    number_turn = 0;
 
     for(int i = 0; i < 9; ++i)
     {
@@ -64,7 +66,7 @@ char Game::isWin()
 {
     bool isWin = false;
 
-    //œÓ‚ÂÍ‡ ÔˇÏ˚ı ÎËÌËÈ
+    //–ü—Ä–æ–≤–µ—Ä–∫–∞ –ø—Ä—è–º—ã—Ö –ª–∏–Ω–∏–π
     for(int i = 0; i < 3; i++)
     {
         if(map[i*3] != ' ' && map[i*3] == map[i*3+1] && map[i*3+1] == map[i*3+2])
@@ -83,7 +85,7 @@ char Game::isWin()
         }
     }
 
-    //ƒË‡„ÓÌ‡ÎË
+    //–î–∏–∞–≥–æ–Ω–∞–ª–∏
     if(map[0] != ' ' && map[0] == map[4] && map[4] == map[8])
     {
         map[0] = '\\';
@@ -104,7 +106,7 @@ char Game::isWin()
         switch(type)
         {
         case 0:
-            res = !is_first_turn;
+            res = is_first_turn;
             break;
         case 1:
             res = is_first_turn?2:0;
@@ -116,14 +118,14 @@ char Game::isWin()
             break;
         }
     }
-    else //œÓ‚ÂÍ‡ Ì‡ ÌË¸˜˛
+    else //–ü—Ä–æ–≤–µ—Ä–∫–∞ –Ω–∞ –Ω–∏—å—á—é
     {
         bool isEmpty = false;
         for(int i = 0; i < 9; ++i)
         {
             if(map[i] == ' ') isEmpty = true;
         }
-        if(!isEmpty) res = 3; //ÕË˜¸ˇ
+        if(!isEmpty) res = 3; //–ù–∏—á—å—è
     }
     return res;
 }
@@ -140,7 +142,15 @@ void Game::turn_type_players(char number_cell)
 
 void Game::turn_type_ai(char number_cell)
 {
-
+    if(is_first_turn == (type == 1))
+    {
+        map[number_cell] = (is_first_turn==true?'X':'0');
+    }
+    else
+    {
+        map[turnAI(map,type)] = (is_first_turn==true?'X':'0');
+        number_turn++;
+    }
 }
 
 void Game::setLabelText()
@@ -174,6 +184,7 @@ char Game::checkCollision(sf::Vector2i& mouseLocalPosition, bool mouseIsLeftButt
          && y <= mouseLocalPosition.y && y + SELL_SIZE - 4 >= mouseLocalPosition.y)
         {
             if (mouseIsLeftButtnPressed) number_cell = i;
+            break;
         }
     }
 
@@ -184,13 +195,14 @@ bool Game::turn(sf::Vector2i& mouseLocalPosition, bool mouseIsLeftButtnPressed)
 {
     char number_cell = checkCollision(mouseLocalPosition,mouseIsLeftButtnPressed);
 
-    if(isCorrectlyTurn(number_cell))
+    if(isCorrectlyTurn(number_cell) || (type != 0) && ((type==2) == is_first_turn))
     {
-        if(type < 3) is_first_turn = !is_first_turn;
-        setLabelText();
 
         if(type == 0)   turn_type_players(number_cell);
         else if (type < 3)  turn_type_ai(number_cell);
+
+        if(type < 3) is_first_turn = !is_first_turn;
+        setLabelText();
 
         return true;
     }
